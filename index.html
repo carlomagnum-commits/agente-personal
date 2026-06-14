@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mi Agente Personal</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<style>
+  :root {
+    --bg: #f8f8f6;
+    --surface: #ffffff;
+    --surface2: #f1f0ec;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #a3a39e;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --purple-text: #3C3489;
+    --teal: #0F6E56;
+    --teal-bg: #E1F5EE;
+    --teal-text: #085041;
+    --amber: #854F0B;
+    --amber-bg: #FAEEDA;
+    --amber-text: #633806;
+    --coral: #993C1D;
+    --coral-bg: #FAECE7;
+    --coral-text: #712B13;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --surface: #252523;
+      --surface2: #2e2e2b;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+      --text: #f0efe9;
+      --text2: #a3a39e;
+      --text3: #6b6b67;
+      --purple-bg: #26215C;
+      --purple-text: #CECBF6;
+      --teal-bg: #04342C;
+      --teal-text: #9FE1CB;
+      --amber-bg: #412402;
+      --amber-text: #FAC775;
+      --coral-bg: #4A1B0C;
+      --coral-text: #F5C4B3;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; background: var(--surface); border-right: 0.5px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 1.25rem 1rem 1rem; border-bottom: 0.5px solid var(--border); }
+  .sidebar-logo h1 { font-size: 16px; font-weight: 500; }
+  .sidebar-logo p { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .nav-section { padding: 1rem 1rem 0.25rem; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1rem; font-size: 14px; color: var(--text2); cursor: pointer; border-left: 2px solid transparent; transition: all 0.15s; text-decoration: none; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { color: var(--text); font-weight: 500; background: var(--surface2); border-left-color: var(--purple); }
+  .nav-item i { font-size: 18px; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { padding: 0.875rem 1.5rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface); }
+  .topbar h2 { font-size: 15px; font-weight: 500; }
+  .topbar-date { font-size: 13px; color: var(--text2); }
+  .content { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+  /* Views */
+  .view { display: none; flex-direction: column; gap: 1.25rem; }
+  .view.active { display: flex; }
+  .section-title { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 700px) { .metrics { grid-template-columns: repeat(2,1fr); } }
+  .metric { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.875rem 1rem; }
+  .metric-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .metric-val { font-size: 24px; font-weight: 500; }
+
+  /* Tasks */
+  .task-list { display: flex; flex-direction: column; gap: 6px; }
+  .task-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); }
+  .task-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border2); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .task-check.done { background: var(--teal); border-color: var(--teal); }
+  .task-check.done::after { content:''; width:5px; height:8px; border:1.5px solid white; border-top:none; border-left:none; transform:rotate(45deg) translateY(-1px); display:block; }
+  .task-text { flex: 1; font-size: 14px; }
+  .task-text.done { text-decoration: line-through; color: var(--text3); }
+  .task-tag { font-size: 11px; padding: 2px 9px; border-radius: 999px; flex-shrink: 0; }
+  .tag-work { background: var(--purple-bg); color: var(--purple-text); }
+  .tag-home { background: var(--teal-bg); color: var(--teal-text); }
+  .tag-study { background: var(--amber-bg); color: var(--amber-text); }
+  .tag-habit { background: var(--coral-bg); color: var(--coral-text); }
+  .add-row { display: flex; gap: 8px; }
+  .add-row input, .add-row select { font-size: 13px; padding: 8px 12px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--surface); color: var(--text); outline: none; }
+  .add-row input { flex: 1; }
+  .add-row input:focus, .add-row select:focus { border-color: var(--purple); }
+  .btn { font-size: 13px; padding: 8px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--surface); color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--surface2); }
+  .btn-primary { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .btn-primary:hover { background: var(--purple-text); border-color: var(--purple-text); }
+  .empty { font-size: 13px; color: var(--text3); padding: 1rem 0; text-align: center; }
+
+  /* Habits */
+  .habits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 600px) { .habits-grid { grid-template-columns: repeat(2,1fr); } }
+  .habit-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+  .habit-name { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+  .habit-days { display: flex; gap: 5px; margin-bottom: 8px; }
+  .habit-day { width: 11px; height: 11px; border-radius: 50%; }
+  .day-on { background: var(--teal); }
+  .day-off { background: var(--border2); }
+  .habit-streak { font-size: 12px; color: var(--text2); }
+  .habit-toggle { margin-top: 10px; }
+
+  /* Projects */
+  .projects-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+  @media (max-width: 600px) { .projects-grid { grid-template-columns: 1fr; } }
+  .project-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; }
+  .project-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .project-desc { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+  .progress-track { height: 4px; border-radius: 2px; background: var(--surface2); overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+  .progress-label { font-size: 12px; color: var(--text2); margin-top: 6px; }
+
+  /* Chat */
+  .chat-wrap { display: flex; flex-direction: column; height: 100%; }
+  .chat-msgs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; min-height: 0; }
+  .msg { max-width: 80%; padding: 9px 13px; border-radius: var(--radius-lg); font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+  .msg-user { align-self: flex-end; background: var(--purple); color: #fff; border-bottom-right-radius: 4px; }
+  .msg-ai { align-self: flex-start; background: var(--surface); border: 0.5px solid var(--border); border-bottom-left-radius: 4px; }
+  .msg-thinking { align-self: flex-start; font-size: 12px; color: var(--text3); font-style: italic; }
+  .chat-input-row { display: flex; gap: 8px; padding-top: 12px; border-top: 0.5px solid var(--border); }
+  .chat-input-row input { flex: 1; font-size: 14px; padding: 9px 13px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--surface); color: var(--text); outline: none; }
+  .chat-input-row input:focus { border-color: var(--purple); }
+  .chat-input-row button { padding: 9px 14px; border-radius: var(--radius); border: none; background: var(--purple); color: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; }
+  .chat-input-row button:hover { background: var(--purple-text); }
+  .api-key-banner { background: var(--amber-bg); border: 0.5px solid var(--amber-text); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--amber-text); display: flex; align-items: center; gap: 10px; }
+  .api-key-banner input { flex:1; font-size:13px; padding:6px 10px; border-radius:var(--radius); border:0.5px solid var(--amber-text); background:transparent; color:var(--amber-text); outline:none; }
+  .api-key-banner button { font-size:12px; padding:6px 12px; border-radius:var(--radius); border:0.5px solid var(--amber-text); background:transparent; color:var(--amber-text); cursor:pointer; white-space:nowrap; }
+  .api-key-banner button:hover { background:var(--amber-text); color:#fff; }
+
+  /* Mobile sidebar */
+  @media (max-width: 600px) {
+    .sidebar { position: fixed; left: -220px; top: 0; bottom: 0; z-index: 100; transition: left 0.2s; }
+    .sidebar.open { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
+    .menu-btn { display: flex !important; }
+  }
+  .menu-btn { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: transparent; color: var(--text); cursor: pointer; font-size: 22px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar" id="sidebar" aria-label="Navegación principal">
+    <div class="sidebar-logo">
+      <h1>Mi Agente</h1>
+      <p>Asistente personal</p>
+    </div>
+    <div class="nav-section">Panel</div>
+    <a class="nav-item active" onclick="showView('resumen',this)" href="#"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Resumen</a>
+    <a class="nav-item" onclick="showView('tareas',this)" href="#"><i class="ti ti-checklist" aria-hidden="true"></i> Tareas</a>
+    <a class="nav-item" onclick="showView('habitos',this)" href="#"><i class="ti ti-repeat" aria-hidden="true"></i> Hábitos</a>
+    <a class="nav-item" onclick="showView('proyectos',this)" href="#"><i class="ti ti-folder" aria-hidden="true"></i> Proyectos</a>
+    <div class="nav-section">Asistente</div>
+    <a class="nav-item" onclick="showView('chat',this)" href="#"><i class="ti ti-message-circle" aria-hidden="true"></i> Chat con IA</a>
+    <div style="flex:1"></div>
+    <a class="nav-item" onclick="showView('config',this)" href="#"><i class="ti ti-settings" aria-hidden="true"></i> Configuración</a>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="menu-btn" id="menu-btn" aria-label="Abrir menú" onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
+        <h2 id="view-title">Resumen del día</h2>
+      </div>
+      <span class="topbar-date" id="today-date"></span>
+    </div>
+    <div class="content">
+
+      <!-- RESUMEN -->
+      <div class="view active" id="view-resumen">
+        <div class="metrics">
+          <div class="metric"><div class="metric-label">Tareas pendientes</div><div class="metric-val" style="color:var(--purple)" id="m-pending">0</div></div>
+          <div class="metric"><div class="metric-label">Completadas hoy</div><div class="metric-val" style="color:var(--teal)" id="m-done">0</div></div>
+          <div class="metric"><div class="metric-label">Hábitos activos</div><div class="metric-val" style="color:var(--amber)" id="m-habits">0</div></div>
+          <div class="metric"><div class="metric-label">Proyectos</div><div class="metric-val" style="color:var(--coral)" id="m-projects">0</div></div>
+        </div>
+        <div>
+          <div class="section-title">Próximas tareas</div>
+          <div class="task-list" id="resumen-tasks"></div>
+        </div>
+        <div>
+          <div class="section-title">Hábitos de hoy</div>
+          <div class="habits-grid" id="resumen-habits"></div>
+        </div>
+      </div>
+
+      <!-- TAREAS -->
+      <div class="view" id="view-tareas">
+        <div class="add-row">
+          <input id="new-task" type="text" placeholder="Nueva tarea..." onkeydown="if(event.key==='Enter')addTask()" />
+          <select id="new-cat">
+            <option value="work">Trabajo</option>
+            <option value="home">Hogar</option>
+            <option value="study">Estudio</option>
+            <option value="habit">Hábito</option>
+          </select>
+          <button class="btn btn-primary" onclick="addTask()"><i class="ti ti-plus" aria-hidden="true"></i> Agregar</button>
+        </div>
+        <div>
+          <div class="section-title">Pendientes</div>
+          <div class="task-list" id="tasks-pending"></div>
+        </div>
+        <div>
+          <div class="section-title">Completadas</div>
+          <div class="task-list" id="tasks-done"></div>
+        </div>
+      </div>
+
+      <!-- HÁBITOS -->
+      <div class="view" id="view-habitos">
+        <div class="add-row">
+          <input id="new-habit" type="text" placeholder="Nombre del hábito..." />
+          <button class="btn btn-primary" onclick="addHabit()"><i class="ti ti-plus" aria-hidden="true"></i> Agregar</button>
+        </div>
+        <div class="habits-grid" id="habits-full"></div>
+      </div>
+
+      <!-- PROYECTOS -->
+      <div class="view" id="view-proyectos">
+        <div class="add-row">
+          <input id="new-proj-name" type="text" placeholder="Nombre del proyecto..." />
+          <input id="new-proj-desc" type="text" placeholder="Descripción..." style="max-width:200px" />
+          <button class="btn btn-primary" onclick="addProject()"><i class="ti ti-plus" aria-hidden="true"></i> Agregar</button>
+        </div>
+        <div class="projects-grid" id="projects-grid"></div>
+      </div>
+
+      <!-- CHAT -->
+      <div class="view" id="view-chat" style="height:calc(100vh - 130px)">
+        <div class="chat-wrap">
+          <div id="api-banner" class="api-key-banner" style="display:none">
+            <i class="ti ti-key" aria-hidden="true"></i>
+            <span>Ingresa tu API key de Anthropic para activar el chat:</span>
+            <input type="password" id="api-key-input" placeholder="sk-ant-..." />
+            <button onclick="saveApiKey()">Guardar</button>
+          </div>
+          <div class="chat-msgs" id="chat-msgs"></div>
+          <div class="chat-input-row">
+            <input id="chat-input" type="text" placeholder="Pregúntame sobre tus tareas..." onkeydown="if(event.key==='Enter')sendChat()" />
+            <button onclick="sendChat()" aria-label="Enviar"><i class="ti ti-send"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIG -->
+      <div class="view" id="view-config">
+        <div style="max-width:480px;display:flex;flex-direction:column;gap:1rem;">
+          <div>
+            <div class="section-title" style="margin-bottom:8px">API key de Anthropic</div>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:10px">Necesaria para el chat con IA. Obtén la tuya en <a href="https://console.anthropic.com" target="_blank" style="color:var(--purple)">console.anthropic.com</a></p>
+            <div class="add-row">
+              <input type="password" id="config-api-key" placeholder="sk-ant-..." style="flex:1" />
+              <button class="btn btn-primary" onclick="saveApiKey()">Guardar</button>
+            </div>
+            <p id="api-status" style="font-size:12px;color:var(--text3);margin-top:6px"></p>
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:8px">Datos</div>
+            <button class="btn" onclick="exportData()"><i class="ti ti-download" aria-hidden="true"></i> Exportar mis datos</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const TITLES = { resumen:'Resumen del día', tareas:'Mis tareas', habitos:'Hábitos', proyectos:'Proyectos', chat:'Chat con IA', config:'Configuración' };
+const TAG_LABEL = { work:'Trabajo', home:'Hogar', study:'Estudio', habit:'Hábito' };
+const TAG_CLASS = { work:'tag-work', home:'tag-home', study:'tag-study', habit:'tag-habit' };
+const COLORS = ['#534AB7','#0F6E56','#993C1D','#854F0B','#185FA5','#639922'];
+
+function load(key, def) { try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch { return def; } }
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+let tasks = load('tasks', [
+  { id:1, text:'Revisar correos pendientes', cat:'work', done:false },
+  { id:2, text:'Comprar ingredientes', cat:'home', done:false },
+  { id:3, text:'Estudiar 30 min de inglés', cat:'study', done:false },
+]);
+let habits = load('habits', [
+  { id:1, name:'Ejercicio', streak:5, days:[1,1,1,1,1,0,0] },
+  { id:2, name:'Lectura', streak:3, days:[0,1,1,1,0,0,1] },
+  { id:3, name:'Meditación', streak:7, days:[1,1,1,1,1,1,1] },
+]);
+let projects = load('projects', [
+  { id:1, name:'Agente personal', desc:'Configuración de IA', progress:30, color:COLORS[0] },
+  { id:2, name:'Curso de inglés', desc:'Meta nivel B2', progress:65, color:COLORS[1] },
+]);
+let chatHistory = [];
+let apiKey = localStorage.getItem('anthropic_key') || '';
+
+function showView(name, el) {
+  event && event.preventDefault();
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('view-title').textContent = TITLES[name];
+  document.getElementById('sidebar').classList.remove('open');
+  if(name==='resumen') renderResumen();
+  if(name==='tareas') renderTasks();
+  if(name==='habitos') renderHabits('habits-full');
+  if(name==='proyectos') renderProjects();
+  if(name==='chat') initChat();
+  if(name==='config') {
+    document.getElementById('config-api-key').value = apiKey;
+    document.getElementById('api-status').textContent = apiKey ? '✓ API key guardada' : '';
+  }
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+function taskEl(t) {
+  const div = document.createElement('div');
+  div.className = 'task-item';
+  const check = document.createElement('div');
+  check.className = 'task-check' + (t.done?' done':'');
+  check.onclick = () => { t.done = !t.done; save('tasks', tasks); renderTasks(); renderResumen(); };
+  const txt = document.createElement('span');
+  txt.className = 'task-text' + (t.done?' done':'');
+  txt.textContent = t.text;
+  const tag = document.createElement('span');
+  tag.className = 'task-tag ' + TAG_CLASS[t.cat];
+  tag.textContent = TAG_LABEL[t.cat];
+  const del = document.createElement('button');
+  del.className = 'btn'; del.style.cssText = 'padding:4px 8px;font-size:12px;color:var(--text3);border:none;background:transparent';
+  del.innerHTML = '<i class="ti ti-x" aria-hidden="true"></i>';
+  del.onclick = () => { tasks = tasks.filter(x => x.id !== t.id); save('tasks', tasks); renderTasks(); renderResumen(); };
+  div.append(check, txt, tag, del);
+  return div;
+}
+
+function renderTasks() {
+  const p = document.getElementById('tasks-pending');
+  const d = document.getElementById('tasks-done');
+  if(!p) return;
+  p.innerHTML = ''; d.innerHTML = '';
+  const pending = tasks.filter(t=>!t.done);
+  const done = tasks.filter(t=>t.done);
+  if(!pending.length) p.innerHTML = '<div class="empty">Sin tareas pendientes 🎉</div>';
+  else pending.forEach(t => p.appendChild(taskEl(t)));
+  if(!done.length) d.innerHTML = '<div class="empty">Ninguna completada aún</div>';
+  else done.forEach(t => d.appendChild(taskEl(t)));
+}
+
+function addTask() {
+  const inp = document.getElementById('new-task');
+  const cat = document.getElementById('new-cat').value;
+  if(!inp.value.trim()) return;
+  tasks.unshift({ id: Date.now(), text: inp.value.trim(), cat, done: false });
+  inp.value = ''; save('tasks', tasks); renderTasks(); renderResumen();
+}
+
+function renderResumen() {
+  const rt = document.getElementById('resumen-tasks');
+  if(!rt) return;
+  const pending = tasks.filter(t=>!t.done);
+  const done = tasks.filter(t=>t.done);
+  document.getElementById('m-pending').textContent = pending.length;
+  document.getElementById('m-done').textContent = done.length;
+  document.getElementById('m-habits').textContent = habits.length;
+  document.getElementById('m-projects').textContent = projects.length;
+  rt.innerHTML = '';
+  if(!pending.length) rt.innerHTML = '<div class="empty">¡Todo al día! 🎉</div>';
+  else pending.slice(0,4).forEach(t => rt.appendChild(taskEl(t)));
+  renderHabits('resumen-habits');
+}
+
+function habitEl(h) {
+  const div = document.createElement('div');
+  div.className = 'habit-card';
+  div.innerHTML = `<div class="habit-name">${h.name}</div>`;
+  const days = document.createElement('div');
+  days.className = 'habit-days';
+  h.days.forEach(d => {
+    const dot = document.createElement('div');
+    dot.className = 'habit-day ' + (d ? 'day-on' : 'day-off');
+    days.appendChild(dot);
+  });
+  const streak = document.createElement('div');
+  streak.className = 'habit-streak';
+  streak.textContent = h.streak + ' días seguidos';
+  const toggle = document.createElement('button');
+  toggle.className = 'btn'; toggle.style.cssText = 'margin-top:8px;font-size:12px;padding:5px 10px;width:100%;justify-content:center';
+  toggle.textContent = 'Marcar hoy';
+  toggle.onclick = () => {
+    h.days[h.days.length-1] = h.days[h.days.length-1] ? 0 : 1;
+    h.streak = h.days[h.days.length-1] ? h.streak + 1 : Math.max(0, h.streak - 1);
+    save('habits', habits); renderHabits('habits-full'); renderResumen();
+  };
+  div.append(days, streak, toggle);
+  return div;
+}
+
+function renderHabits(id) {
+  const c = document.getElementById(id);
+  if(!c) return;
+  c.innerHTML = '';
+  if(!habits.length) { c.innerHTML = '<div class="empty">Sin hábitos aún</div>'; return; }
+  habits.forEach(h => c.appendChild(habitEl(h)));
+}
+
+function addHabit() {
+  const inp = document.getElementById('new-habit');
+  if(!inp.value.trim()) return;
+  habits.push({ id: Date.now(), name: inp.value.trim(), streak: 0, days: [0,0,0,0,0,0,0] });
+  inp.value = ''; save('habits', habits); renderHabits('habits-full'); renderResumen();
+}
+
+function renderProjects() {
+  const g = document.getElementById('projects-grid');
+  if(!g) return;
+  g.innerHTML = '';
+  if(!projects.length) { g.innerHTML = '<div class="empty">Sin proyectos aún</div>'; return; }
+  projects.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    const color = p.color || COLORS[i % COLORS.length];
+    card.innerHTML = `
+      <div class="project-name">${p.name}</div>
+      <div class="project-desc">${p.desc}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <input type="range" min="0" max="100" value="${p.progress}" style="flex:1;accent-color:${color}" oninput="updateProgress(${p.id}, this.value, this.nextElementSibling)" />
+        <span style="font-size:12px;color:var(--text2);min-width:32px;text-align:right">${p.progress}%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${p.progress}%;background:${color}"></div></div>`;
+    g.appendChild(card);
+  });
+}
+
+function updateProgress(id, val, label) {
+  const p = projects.find(x => x.id === id);
+  if(p) { p.progress = parseInt(val); label.textContent = val + '%'; label.closest('.project-card').querySelector('.progress-fill').style.width = val + '%'; save('projects', projects); }
+}
+
+function addProject() {
+  const name = document.getElementById('new-proj-name').value.trim();
+  const desc = document.getElementById('new-proj-desc').value.trim();
+  if(!name) return;
+  projects.push({ id: Date.now(), name, desc: desc || 'Sin descripción', progress: 0, color: COLORS[projects.length % COLORS.length] });
+  document.getElementById('new-proj-name').value = '';
+  document.getElementById('new-proj-desc').value = '';
+  save('projects', projects); renderProjects();
+}
+
+function saveApiKey() {
+  const val = (document.getElementById('config-api-key') || document.getElementById('api-key-input')).value.trim();
+  if(val) { apiKey = val; localStorage.setItem('anthropic_key', val); }
+  document.getElementById('api-status') && (document.getElementById('api-status').textContent = '✓ API key guardada');
+  document.getElementById('api-banner') && (document.getElementById('api-banner').style.display = 'none');
+}
+
+function initChat() {
+  if(!apiKey) { document.getElementById('api-banner').style.display = 'flex'; }
+  if(!chatHistory.length) addMsg('ai', '¡Hola! Soy tu asistente personal. Conozco tus tareas, hábitos y proyectos. ¿En qué te ayudo hoy?');
+}
+
+function addMsg(role, text) {
+  const msgs = document.getElementById('chat-msgs');
+  if(!msgs) return null;
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + role;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if(!text) return;
+  if(!apiKey) { addMsg('ai', 'Por favor configura tu API key en Configuración para usar el chat.'); return; }
+  inp.value = '';
+  addMsg('user', text);
+  chatHistory.push({ role:'user', content:text });
+  const thinking = addMsg('thinking', 'Pensando...');
+  const taskSummary = tasks.map(t => (t.done?'[✓] ':'[ ] ') + t.text + ' (' + TAG_LABEL[t.cat] + ')').join('\n') || 'Sin tareas';
+  const habitSummary = habits.map(h => h.name + ': ' + h.streak + ' días').join(', ') || 'Sin hábitos';
+  const projSummary = projects.map(p => p.name + ' ' + p.progress + '%').join(', ') || 'Sin proyectos';
+  const system = `Eres el asistente personal del usuario. Conoces su contexto:\n\nTareas:\n${taskSummary}\n\nHábitos: ${habitSummary}\nProyectos: ${projSummary}\n\nResponde siempre en español, de forma concisa y útil. Puedes ayudar a priorizar, dar consejos de productividad, o responder preguntas generales.`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-api-key': apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-client-side-api-key-access': 'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system, messages: chatHistory })
+    });
+    const data = await res.json();
+    thinking && thinking.remove();
+    if(data.content) {
+      const reply = data.content.map(c=>c.text||'').join('');
+      chatHistory.push({ role:'assistant', content:reply });
+      addMsg('ai', reply);
+    } else {
+      addMsg('ai', 'Error: ' + (data.error?.message || 'respuesta inesperada'));
+    }
+  } catch(e) {
+    thinking && thinking.remove();
+    addMsg('ai', 'No se pudo conectar. Revisa tu API key en Configuración.');
+  }
+}
+
+function exportData() {
+  const data = { tasks, habits, projects };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'agente-personal-datos.json'; a.click();
+}
+
+const days = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const now = new Date();
+document.getElementById('today-date').textContent = days[now.getDay()] + ', ' + now.getDate() + ' de ' + months[now.getMonth()];
+
+renderResumen();
+</script>
+</body>
+</html>
